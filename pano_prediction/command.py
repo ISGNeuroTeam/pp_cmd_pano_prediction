@@ -5,7 +5,7 @@ from pp_exec_env.base_command import BaseCommand, Syntax
 
 
 class PanoPredictionCommand(BaseCommand):
-    # define syntax of your command here
+    # Makes prediction PANO by data of ONE sportsman
     syntax = Syntax(
         [],
     )
@@ -45,7 +45,7 @@ class PanoPredictionCommand(BaseCommand):
         df_to_process = df_to_process[
             ~df_to_process.full_name.isin(names_to_drop)
             & ~df_to_process.test_date.isin(dates_to_drop)
-        ]
+            ]
 
         features_dict = {
             "age": [],
@@ -62,18 +62,18 @@ class PanoPredictionCommand(BaseCommand):
             col
             for col in df_to_process.columns
             if col
-            not in [
-                "t",
-                "test_date",
-                "full_name",
-                "height",
-                "weight",
-                "ages",
-                "WR",
-                "v",
-                "test_type",
-                "train_type",
-            ]
+               not in [
+                   "t",
+                   "test_date",
+                   "full_name",
+                   "height",
+                   "weight",
+                   "ages",
+                   "WR",
+                   "v",
+                   "test_type",
+                   "train_type",
+               ]
         ]
         for col in cols_to_calc:
             features_dict["max_" + col] = []
@@ -84,10 +84,10 @@ class PanoPredictionCommand(BaseCommand):
         person_date_df = person_date_df[
             (person_date_df["VCO2(STPD)"] < person_date_df["VCO2(STPD)"].quantile(0.95))
             & (
-                person_date_df["VCO2(STPD)"]
-                > person_date_df["VCO2(STPD)"].quantile(0.05)
+                    person_date_df["VCO2(STPD)"]
+                    > person_date_df["VCO2(STPD)"].quantile(0.05)
             )
-        ]
+            ]
 
         if "-" in person_date_df["WR"].values:
             test_type = 0
@@ -144,7 +144,6 @@ class PanoPredictionCommand(BaseCommand):
         # Add description of what going on for log progress
         self.log_progress("First part is complete.", stage=1, total_stages=2)
         #
-        self.log_progress("Last transformation is complete", stage=2, total_stages=2)
 
         # Use ordinary logger if you need
 
@@ -165,5 +164,8 @@ class PanoPredictionCommand(BaseCommand):
                 "rb",
             )
         )
-        res_df = pd.DataFrame({"pano": model.predict(predict_data)})
-        return res_df
+        predicted_pano = model.predict(predict_data)
+        df["pano"] = predicted_pano[0]
+
+        self.log_progress("Prediction is complete", stage=2, total_stages=2)
+        return df.reset_index(drop=True)
